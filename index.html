@@ -292,14 +292,14 @@
       <button id="addBtn">참석</button>
     </div>
     <div class="suggest-list" id="suggestList"></div>
-    <div class="legend-note">(파란색=14기, 빨간색=그 외 / 클릭하면 참석 시간 확인)</div>
+    <div class="legend-note">(멋쟁이 PMBA 14기만 푸른색으로 표기됩니다.)</div>
 
     <div class="items" id="itemsList"></div>
   </div>
 
   <div class="card">
     <div class="section-head">
-      <span class="section-title"><span class="dot dot-green"></span>정산 요약</span>
+      <span class="section-title"><span class="dot dot-green"></span><span id="summaryTitleText">정산 요약</span></span>
     </div>
 
     <div class="stat-cards">
@@ -311,7 +311,7 @@
       <div class="stat-card">
         <div class="emoji">💰</div>
         <div class="big accent mono" id="perPersonDisplay">0원</div>
-        <div class="small">1인당 정산 금액</div>
+        <div class="small">1인당 (예상)정산 금액</div>
       </div>
     </div>
     <div class="formula-line mono" id="formulaLine"></div>
@@ -322,6 +322,7 @@
       <input id="billInput" class="mono" inputmode="numeric" placeholder="관리자만 입력 가능" readonly />
       <span class="unit">원</span>
     </div>
+    <div class="legend-note" id="billNote" style="display:none;">(전체금액 중 1학년 할당 금액)</div>
 
     <div id="receiptRow"></div>
     <input type="file" id="receiptFileInput" accept="image/*" style="display:none;" />
@@ -376,6 +377,8 @@
   const venueInput = document.getElementById("venueInput");
   const billInput = document.getElementById("billInput");
   const billLock = document.getElementById("billLock");
+  const billNote = document.getElementById("billNote");
+  const summaryTitleText = document.getElementById("summaryTitleText");
   const receiptRow = document.getElementById("receiptRow");
   const receiptFileInput = document.getElementById("receiptFileInput");
   const imageModalOverlay = document.getElementById("imageModalOverlay");
@@ -635,20 +638,26 @@
     await saveRounds();
   }
 
+  function roundDisplayLabel(label, idx) {
+    return idx === 0 ? `${label}(전체)` : `${label}(개별)`;
+  }
+
   function render() {
-    tabsRow.innerHTML = rounds.map(r => `
+    tabsRow.innerHTML = rounds.map((r, i) => `
       <span class="tab-item${r.id === activeRoundId ? " active" : ""}">
-        <button class="tab-label${rounds.length === 1 ? " solo" : ""}" data-id="${r.id}">${escapeHtml(r.label)}</button>
+        <button class="tab-label${rounds.length === 1 ? " solo" : ""}" data-id="${r.id}">${escapeHtml(roundDisplayLabel(r.label, i))}</button>
         ${rounds.length > 1 ? `<button class="tab-x" data-id="${r.id}" aria-label="차수 삭제">×</button>` : ""}
       </span>
     `).join("") + `<button class="tab-add" id="addRoundBtn" aria-label="차수 추가">+</button>`;
 
     const r = activeRound();
+    const activeIdx = rounds.findIndex(x => x.id === activeRoundId);
     if (document.activeElement !== venueInput) venueInput.value = r.venue || "";
 
     billInput.readOnly = !isAdmin;
     billLock.textContent = isAdmin ? "💰" : "🔒";
     if (document.activeElement !== billInput) billInput.value = r.bill ? formatWon(r.bill) : "";
+    billNote.style.display = activeIdx === 0 ? "block" : "none";
 
     renderReceipt(r);
 
@@ -669,9 +678,10 @@
     countDisplay.textContent = `${count}명`;
     perPersonDisplay.textContent = `${formatWon(perPerson)}원`;
     formulaLine.textContent = count > 0 ? `${formatWon(r.bill)}원 ÷ ${count}명` : `참석 인원이 없으면 계산할 수 없어요`;
+    summaryTitleText.textContent = `${r.label} 정산 요약`;
 
     heroCount.textContent = `${count}명`;
-    heroRound.textContent = r.label;
+    heroRound.textContent = roundDisplayLabel(r.label, activeIdx);
     heroPerPerson.textContent = (r.bill > 0 && count > 0) ? `${formatWon(perPerson)}원` : "미정";
 
     rosterBtn.textContent = (isAdmin ? "" : "🔒 ") + "명단 등록·수정";
