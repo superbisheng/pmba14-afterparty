@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>공유 저장소 만들기</title>
+<style>
+  body { font-family: -apple-system, "Apple SD Gothic Neo", sans-serif; background:#ECEDF3; padding:30px 20px; color:#15161B; }
+  .box { max-width:420px; margin:0 auto; background:#fff; border-radius:20px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.08); }
+  h1 { font-size:18px; margin:0 0 10px; }
+  p { font-size:14px; color:#555; line-height:1.6; }
+  button { background:#15161B; color:#fff; border:none; border-radius:12px; padding:14px 20px; font-size:15px; font-weight:700; cursor:pointer; width:100%; margin-top:10px; }
+  .result { margin-top:18px; padding:14px; background:#F4F5F8; border-radius:12px; word-break:break-all; font-size:13px; display:none; }
+  .result.show { display:block; }
+  .url { font-weight:700; color:#2B3868; margin-bottom:8px; }
+  .copybtn { background:#E7ECFB; color:#3E52A3; margin-top:8px; }
+  .err { color:#B4485A; margin-top:12px; font-size:13px; display:none; }
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>공유 저장소 만들기 (한 번만 실행)</h1>
+  <p>버튼을 누르면 참석 체크 앱이 쓸 공용 저장 공간을 하나 만들어요. 만들어진 주소를 복사해서 Claude 채팅창에 붙여넣어주면, 그 주소를 앱에 연결해줄게요.</p>
+  <button id="go">저장소 만들기</button>
+  <div class="result" id="result">
+    <div class="url" id="urlText"></div>
+    <button class="copybtn" id="copyBtn">주소 복사하기</button>
+  </div>
+  <div class="err" id="err"></div>
+</div>
+<script>
+document.getElementById('go').addEventListener('click', async () => {
+  const errEl = document.getElementById('err');
+  errEl.style.display = 'none';
+  try {
+    const initial = {
+      settings: { adminPin: null, roster: [] },
+      rounds: [{ id: "r1", label: "2차", venue: "", attendees: [], bill: 0 }]
+    };
+    const res = await fetch('https://jsonblob.com/api/jsonBlob', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(initial)
+    });
+    if (!res.ok) throw new Error('요청 실패: ' + res.status);
+    const location = res.headers.get('Location');
+    if (!location) throw new Error('주소를 읽어오지 못했어요 (Location 헤더 없음)');
+    document.getElementById('urlText').textContent = location;
+    document.getElementById('result').classList.add('show');
+    document.getElementById('copyBtn').onclick = () => {
+      navigator.clipboard.writeText(location).then(() => {
+        document.getElementById('copyBtn').textContent = '복사됨!';
+      }).catch(() => {
+        alert(location);
+      });
+    };
+  } catch (e) {
+    errEl.textContent = '오류: ' + e.message + ' — 다시 눌러보거나 캡처해서 보여줘.';
+    errEl.style.display = 'block';
+  }
+});
+</script>
+</body>
+</html>
