@@ -255,7 +255,7 @@
     <div class="date-line" id="dateLine"></div>
     <div class="stat-pills">
       <div class="stat-pill">
-        <div class="label">🙋 참석 인원</div>
+        <div class="label" id="heroCountLabel">🙋 참석 인원</div>
         <div class="value" id="heroCount">0명</div>
       </div>
       <div class="stat-pill">
@@ -309,7 +309,7 @@
       <div class="stat-card">
         <div class="emoji">🙋</div>
         <div class="big mono" id="countDisplay">0명</div>
-        <div class="small">참석 인원</div>
+        <div class="small" id="countLabel">참석 인원</div>
       </div>
       <div class="stat-card">
         <div class="emoji">💰</div>
@@ -375,6 +375,7 @@
 
   const dateLine = document.getElementById("dateLine");
   const heroCount = document.getElementById("heroCount");
+  const heroCountLabel = document.getElementById("heroCountLabel");
   const heroRound = document.getElementById("heroRound");
   const heroPerPerson = document.getElementById("heroPerPerson");
 
@@ -393,6 +394,7 @@
   const suggestList = document.getElementById("suggestList");
   const itemsList = document.getElementById("itemsList");
   const countDisplay = document.getElementById("countDisplay");
+  const countLabel = document.getElementById("countLabel");
   const perPersonDisplay = document.getElementById("perPersonDisplay");
   const formulaLine = document.getElementById("formulaLine");
   const syncStatus = document.getElementById("syncStatus");
@@ -662,7 +664,7 @@
     billInput.readOnly = !isAdmin;
     billLock.textContent = isAdmin ? "💰" : "🔒";
     if (document.activeElement !== billInput) billInput.value = r.bill ? formatWon(r.bill) : "";
-    billNote.style.display = activeIdx === 0 ? "block" : "none";
+    billNote.style.display = is2nd ? "block" : "none";
 
     renderReceipt(r);
 
@@ -680,12 +682,16 @@
 
     const count = r.attendees.length;
     const perPerson = count > 0 ? r.bill / count : 0;
+    const is2nd = r.label === "2차";
+    const countLabelText = is2nd ? "14기 참석인원" : "참석 인원";
     countDisplay.textContent = `${count}명`;
+    countLabel.textContent = countLabelText;
     perPersonDisplay.textContent = `${formatWon(perPerson)}원`;
     formulaLine.textContent = count > 0 ? `${formatWon(r.bill)}원 ÷ ${count}명` : `참석 인원이 없으면 계산할 수 없어요`;
     summaryTitleText.textContent = `${r.label} 정산 요약`;
 
     heroCount.textContent = `${count}명`;
+    heroCountLabel.textContent = `🙋 ${countLabelText}`;
     heroRound.textContent = roundDisplayLabel(r.label, activeIdx);
     heroPerPerson.textContent = (r.bill > 0 && count > 0) ? `${formatWon(perPerson)}원` : "미정";
 
