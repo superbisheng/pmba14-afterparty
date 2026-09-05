@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 <title>PMBA 14기 개강총회 Afterparty</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyAhWNwj4YjbIWMZ51K6LLykYaz3_8grwN8",
+    authDomain: "pmba14-afterparty.firebaseapp.com",
+    databaseURL: "https://pmba14-afterparty-default-rtdb.firebaseio.com",
+    projectId: "pmba14-afterparty",
+    storageBucket: "pmba14-afterparty.firebasestorage.app",
+    messagingSenderId: "794996779996",
+    appId: "1:794996779996:web:ee300a179776f20a547d19"
+  });
+</script>
 <style>
   :root {
     --bg: #ECEDF3;
@@ -327,7 +340,7 @@
 
 <script>
 (function () {
-  const hasStorage = typeof window.storage !== "undefined" && window.storage !== null;
+  const db = firebase.database();
   const CHOSUNG = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
   const WEEKDAY = ['일','월','화','수','목','금','토'];
 
@@ -450,23 +463,19 @@
   }
 
   async function loadSettings() {
-    if (!hasStorage) return;
     try {
-      const result = await window.storage.get("settings", true);
-      if (result && result.value) {
-        const parsed = JSON.parse(result.value);
-        settings = { adminPin: parsed.adminPin || null, roster: Array.isArray(parsed.roster) ? parsed.roster : [] };
+      const snap = await db.ref("settings").once("value");
+      const val = snap.val();
+      if (val) {
+        settings = { adminPin: val.adminPin || null, roster: Array.isArray(val.roster) ? val.roster : [] };
       }
     } catch (e) {}
   }
   async function loadRounds() {
-    if (!hasStorage) { ensureDefaultRound(); return; }
     try {
-      const result = await window.storage.get("rounds", true);
-      if (result && result.value) {
-        const parsed = JSON.parse(result.value);
-        if (Array.isArray(parsed) && parsed.length > 0) rounds = parsed;
-      }
+      const snap = await db.ref("rounds").once("value");
+      const val = snap.val();
+      if (Array.isArray(val) && val.length > 0) rounds = val;
     } catch (e) {}
     ensureDefaultRound();
   }
@@ -477,12 +486,6 @@
   }
 
   async function loadAll(silent) {
-    if (!hasStorage) {
-      ensureDefaultRound();
-      syncStatus.textContent = "이 브라우저에서만 임시로 저장돼요";
-      render();
-      return;
-    }
     try {
       await Promise.all([loadSettings(), loadRounds()]);
       clearError();
@@ -495,17 +498,14 @@
     updateSyncStatusText();
   }
   function updateSyncStatusText() {
-    if (!hasStorage) return;
     syncStatus.textContent = `${secondsLeft}초 후 새로고침 · 마지막 동기화 ${lastSyncLabel || "-"}`;
   }
   async function saveSettings() {
-    if (!hasStorage) return;
-    try { await window.storage.set("settings", JSON.stringify(settings), true); clearError(); }
+    try { await db.ref("settings").set(settings); clearError(); }
     catch (e) { showError("저장에 실패했어요. 다시 시도해주세요."); }
   }
   async function saveRounds() {
-    if (!hasStorage) return;
-    try { await window.storage.set("rounds", JSON.stringify(rounds), true); clearError(); }
+    try { await db.ref("rounds").set(rounds); clearError(); }
     catch (e) { showError("저장에 실패했어요. 다시 시도해주세요."); }
   }
 
@@ -793,7 +793,6 @@
   setDateLine();
   loadAll(true);
   setInterval(async () => {
-    if (!hasStorage) return;
     secondsLeft -= 1;
     if (secondsLeft <= 0) {
       secondsLeft = 10;
