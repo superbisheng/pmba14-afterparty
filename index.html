@@ -128,6 +128,9 @@
   }
 
   .field-label { font-size: 12px; font-weight: 700; color: var(--muted-c); margin: 12px 0 6px; }
+  .field-label-row { display: flex; align-items: baseline; gap: 6px; margin: 12px 0 6px; }
+  .field-label-row .field-label { margin: 0; }
+  .field-label-row .legend-note { margin: 0; }
   .field-pill {
     display: flex; align-items: center; gap: 8px; background: var(--pill-gray-bg);
     border-radius: 14px; height: 34px; padding: 0 12px;
@@ -316,13 +319,15 @@
     </div>
     <div class="formula-line mono" id="formulaLine"></div>
 
-    <div class="field-label">총 금액</div>
+    <div class="field-label-row">
+      <span class="field-label">총 금액</span>
+      <span class="legend-note" id="billNote" style="display:none;">(전체금액 중 1학년 할당 금액)</span>
+    </div>
     <div class="field-pill">
       <span class="icon" id="billLock">🔒</span>
       <input id="billInput" class="mono" inputmode="numeric" placeholder="관리자만 입력 가능" readonly />
       <span class="unit">원</span>
     </div>
-    <div class="legend-note" id="billNote" style="display:none;">(전체금액 중 1학년 할당 금액)</div>
 
     <div id="receiptRow"></div>
     <input type="file" id="receiptFileInput" accept="image/*" style="display:none;" />
