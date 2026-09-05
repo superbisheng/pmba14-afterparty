@@ -659,6 +659,7 @@
 
     const r = activeRound();
     const activeIdx = rounds.findIndex(x => x.id === activeRoundId);
+    const is2nd = r.label === "2차";
     if (document.activeElement !== venueInput) venueInput.value = r.venue || "";
 
     billInput.readOnly = !isAdmin;
@@ -682,7 +683,6 @@
 
     const count = r.attendees.length;
     const perPerson = count > 0 ? r.bill / count : 0;
-    const is2nd = r.label === "2차";
     const countLabelText = is2nd ? "14기 참석인원" : "참석 인원";
     countDisplay.textContent = `${count}명`;
     countLabel.textContent = countLabelText;
