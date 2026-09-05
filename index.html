@@ -475,7 +475,16 @@
     try {
       const snap = await db.ref("rounds").once("value");
       const val = snap.val();
-      if (Array.isArray(val) && val.length > 0) rounds = val;
+      if (Array.isArray(val) && val.length > 0) {
+        rounds = val.map(r => ({
+          id: r.id,
+          label: r.label || "차수",
+          venue: r.venue || "",
+          attendees: Array.isArray(r.attendees) ? r.attendees : [],
+          bill: typeof r.bill === "number" ? r.bill : 0,
+          ...(r.receipt ? { receipt: r.receipt } : {})
+        }));
+      }
     } catch (e) {}
     ensureDefaultRound();
   }
